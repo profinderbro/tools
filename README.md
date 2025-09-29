@@ -157,3 +157,67 @@ fetchAll();
 
 ---
 
+<details>
+<summary>Url downlader jut put the 'urls.txt' </summary>
+
+```
+# Install requirements
+!pip install aiohttp aiofiles tqdm -q
+
+import aiohttp
+import aiofiles
+import asyncio
+import os
+import zipfile
+from tqdm.asyncio import tqdm
+
+# File containing URLs
+url_file = "/content/urls.txt"
+
+# Output folder
+out_dir = "/content/images"
+os.makedirs(out_dir, exist_ok=True)
+
+# Read URLs
+with open(url_file, "r") as f:
+    urls = [line.strip() for line in f if line.strip()]
+
+# Download worker
+async def download_image(session, url):
+    try:
+        filename = os.path.basename(url.split("?")[0])
+        filepath = os.path.join(out_dir, filename)
+
+        async with session.get(url) as resp:
+            if resp.status == 200:
+                async with aiofiles.open(filepath, 'wb') as f:
+                    await f.write(await resp.read())
+            else:
+                print(f"❌ Failed: {url} ({resp.status})")
+    except Exception as e:
+        print(f"⚠️ Error: {url} - {e}")
+
+# Main async runner
+async def main():
+    connector = aiohttp.TCPConnector(limit=20)  # parallel workers
+    async with aiohttp.ClientSession(connector=connector) as session:
+        tasks = [download_image(session, url) for url in urls]
+        for f in tqdm(asyncio.as_completed(tasks), total=len(tasks), desc="Downloading"):
+            await f
+
+# Run downloader
+await main()
+
+# Zip results
+zip_path = "/content/images.zip"
+with zipfile.ZipFile(zip_path, 'w') as zipf:
+    for root, _, files in os.walk(out_dir):
+        for file in files:
+            zipf.write(os.path.join(root, file), file)
+
+print(f"✅ Download complete! ZIP saved at: {zip_path}")
+```
+
+  
+</details>
+
