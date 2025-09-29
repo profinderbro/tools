@@ -1,15 +1,75 @@
-### Utility
+# Utility
 
-
-```bash
+### File manager 100 files per folder
+<details>
+<summary>Click to expand</summary>
+  
+```
 python3 -c "import os,shutil; files=sorted([f for f in os.listdir('.') if os.path.isfile(f)]); [ (os.makedirs(str(i//100+1),exist_ok=True), [shutil.move(f,os.path.join(str(i//100+1),f)) for f in files[i:i+100]]) for i in range(0,len(files),100) ]"
 ```
+</details>
 
----
+### WEBP convertor for COLAB
+<details>
+  <summary>Click to expand</summary>
+  
+```
+import os
+from PIL import Image
 
-✅ This will:
+base_dir = "/content/downloads"
 
-* Take all files in the **current folder**.
-* Create subfolders: `1`, `2`, `3`, …
-* Move **100 files per folder**.
+# Step 1: convert to .webp and delete originals
+for root, dirs, files in os.walk(base_dir):
+    for file in files:
+        path = os.path.join(root, file)
+        out_path = os.path.splitext(path)[0] + ".webp"
+        try:
+            with Image.open(path) as im:
+                im.convert("RGB").save(out_path, "webp", quality=80, method=6)
+            if out_path != path:
+                os.remove(path)
+        except Exception as e:
+            print(f"skip {path}: {e}")
 
+# Step 2: rename as 001.webp, 002.webp, ...
+for root, dirs, files in os.walk(base_dir):
+    files = [f for f in files if f.lower().endswith(".webp")]
+    files.sort()
+    for i, file in enumerate(files, 1):
+        new_name = f"{i:03}.webp"
+        old_path = os.path.join(root, file)
+        new_path = os.path.join(root, new_name)
+        os.rename(old_path, new_path)
+
+print("All images converted to WEBP and renamed.")
+```
+</details>
+
+### Folder to JSON
+
+<details>
+  <summary>Click to expand</summary>
+  
+```
+import os
+import json
+
+base_dir = "/content/downloads"
+output_json = "/content/final_index.json"
+
+result = {}
+
+for user in sorted(os.listdir(base_dir)):
+    folder = os.path.join(base_dir, user)
+    if os.path.isdir(folder):
+        files = [f for f in os.listdir(folder) if f.lower().endswith(".webp")]
+        files.sort()
+        result[user] = files
+
+with open(output_json, "w") as f:
+    json.dump(result, f, indent=2)
+
+print(f"JSON saved to {output_json}")
+```
+</details>
