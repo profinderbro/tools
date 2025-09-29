@@ -71,3 +71,13 @@ with open(output_json, "w") as f:
 print(f"JSON saved to {output_json}")
 ```
 </details>
+
+#
+
+<details>
+<summary>Zip folder</summary>
+
+```
+!zip -0 -r /content/downloads.zip /content/downloads
+```
+</details>
