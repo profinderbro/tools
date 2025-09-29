@@ -16,8 +16,10 @@ python3 -c "import os,shutil; files=sorted([f for f in os.listdir('.') if os.pat
 ```
 import os
 from PIL import Image
+import random
+import string
 
-base_dir = "/content/downloads"
+base_dir = "/content/images"
 
 # Step 1: convert to .webp and delete originals
 for root, dirs, files in os.walk(base_dir):
@@ -32,17 +34,25 @@ for root, dirs, files in os.walk(base_dir):
         except Exception as e:
             print(f"skip {path}: {e}")
 
-# Step 2: rename as 001.webp, 002.webp, ...
+# Step 2: rename all .webp files to unique random 6-char alphanumeric names
+def random_name(existing_names):
+    while True:
+        name = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+        if name not in existing_names:
+            return name
+
 for root, dirs, files in os.walk(base_dir):
     files = [f for f in files if f.lower().endswith(".webp")]
-    files.sort()
-    for i, file in enumerate(files, 1):
-        new_name = f"{i:03}.webp"
+    existing_names = set()
+    for file in files:
+        new_name = random_name(existing_names) + ".webp"
+        existing_names.add(new_name[:-5])  # store without extension
         old_path = os.path.join(root, file)
         new_path = os.path.join(root, new_name)
         os.rename(old_path, new_path)
 
-print("All images converted to WEBP and renamed.")
+print("All images converted to WEBP and renamed with random names.")
+
 ```
 </details>
 
