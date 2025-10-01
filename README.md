@@ -165,6 +165,80 @@ fetchAll();
 ```
 </details>
 
+
+<details>
+<summary>Kemono.su</summary>
+  
+```
+const urlParts = location.href.split('/');
+const creator_id = urlParts[urlParts.length - 1] || urlParts[urlParts.length - 2];
+
+const service = "patreon"; // or "fanbox", "fantia", etc. depending on the URL
+const apiBase = `https://kemono.cr/api/v1/${service}/user/${creator_id}/posts`;
+let allUrls = [];
+
+async function fetchAll(offset = 0) {
+  const res = await fetch(`${apiBase}?o=${offset}`, {
+    headers: {
+      "Accept": "text/css",  // bypass trick
+      "User-Agent": navigator.userAgent,
+      "Referer": location.href
+    }
+  });
+
+  if (!res.ok) {
+    console.log("✅ Finished scraping. Total:", allUrls.length);
+    saveTxt();
+    return;
+  }
+
+  const posts = await res.json().catch(() => []);
+  if (!posts.length) {
+    console.log("✅ No more posts. Total:", allUrls.length);
+    saveTxt();
+    return;
+  }
+
+  for (const post of posts) {
+    // Handle main file
+    if (post.file?.path) {
+      allUrls.push("https://kemono.cr" + post.file.path);
+    }
+    
+    // Handle attachments
+    for (const att of (post.attachments || [])) {
+      if (att.path) {
+        allUrls.push("https://kemono.cr" + att.path);
+      }
+    }
+  }
+
+  console.log(`Fetched offset ${offset}, total so far: ${allUrls.length}`);
+  await fetchAll(offset + 50);
+}
+
+function saveTxt() {
+  if (!allUrls.length) {
+    console.log("⚠️ No URLs collected.");
+    return;
+  }
+  const blob = new Blob([allUrls.join("\n")], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${creator_id}_urls.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  console.log("💾 Download started:", `${creator_id}_urls.txt`);
+}
+
+fetchAll();
+```
+  
+</details>
+
 ---
 
 <details>
