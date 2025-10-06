@@ -1,6 +1,21 @@
 # Tools
 
 <details>
+  <summary>website AI instr.</summary>
+  
+  ```
+- Always make JavaScript components reusable.
+- Fix the mobile navigation bar buttons so they automatically switch to dark mode. Add <meta name="color-scheme" content="light dark"> and use media-specific <meta name="theme-color"> tags for light and dark modes. Ensure the navigation bar color updates correctly on Android/iOS by adding a small JavaScript snippet that listens for prefers-color-scheme changes and updates the theme-color in real time.
+- Use Tailwind CSS.
+
+Always provide a sticky, top header with a left-aligned site logo (glassy blur theme).
+
+Optimize the site for both mobile and desktop views.
+  ```
+</details>
+
+---
+<details>
 <summary>File manager 100 files per folder</summary>
   
 ```
