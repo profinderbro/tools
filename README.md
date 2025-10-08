@@ -322,6 +322,8 @@ print(f"✅ Download complete! ZIP saved at: {zip_path}")
 
 ---
 
+<details>
+  
 ```
 import requests
 import json
@@ -620,8 +622,6 @@ def process_creator(txt_file_path):
     print(f"\n✅ FINISHED PROCESSING: {creator_name}")
 
 
-# --- Main Execution ---
-
 def main():
     """Main function to find all txt files and start processing."""
     print("Starting the download manager...")
@@ -650,5 +650,6 @@ def main():
 # Run the main function
 if __name__ == "__main__":
     main()
-
 ```
+
+</details>
