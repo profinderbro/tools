@@ -1,0 +1,9 @@
+for f in *.*; do
+  [ -e "$f" ] || continue
+  ext="${f##*.}"
+  while :; do
+    new="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c6).$ext"
+    [ ! -e "$new" ] && break
+  done
+  mv -- "$f" "$new"
+done

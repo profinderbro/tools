@@ -1,0 +1,5 @@
+for f in *.{jpg,jpeg,png,gif}; do
+  [ -e "$f" ] || continue
+  base="${f%.*}"
+  cwebp -lossless "$f" -o "${base}.webp" && rm -f -- "$f"
+done
