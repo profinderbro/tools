@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# --- Configuration & Validation ---
+
+# Check if ffmpeg is installed
+if ! command -v ffmpeg &> /dev/null; then
+    echo "Error: ffmpeg is not installed or not in your PATH."
+    echo "Please install ffmpeg to run this script."
+    exit 1
+fi
+
+# 1. Get the source folder from the user
+read -p "Enter the path to the SOURCE video folder: " SRC
+
+# Validate the source folder
+if [ ! -d "$SRC" ]; then
+    echo "Error: Source directory '$SRC' not found."
+    exit 1
+fi
+
+# 2. Get the destination folder from the user
+read -p "Enter the path to the DESTINATION folder (for resized videos): " DST
+
+# 3. Ask for a dry run to preview the actions
+read -p "Perform a dry run first? (This will show commands without running them) [y/N]: " response
+if [[ "$response" =~ ^[Yy]$ ]]; then
+    DRY_RUN=true
+    echo "--- DRY RUN MODE ENABLED ---"
+else
+    DRY_RUN=false
+fi
+
+echo # Add a newline for readability
+
+# --- Main Processing Loop ---
+
+# Find all video files and process them
+find "$SRC" -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.webm" \) | while read -r f; do
+
+    # This line is less critical on Linux/macOS but kept for compatibility
+    # with filenames that might have carriage returns from other systems.
+    f_cleaned="$(printf '%s' "$f" | tr -d '\r')"
+
+    # --- Determine Paths ---
+
+    # Get the path of the file relative to the source directory
+    rel_path="${f_cleaned#$SRC/}"
+
+    # Create the full path for the output directory
+    output_dir="$DST/$(dirname "$rel_path")"
+
+    # Get the base filename of the video
+    base_name="$(basename "$f_cleaned")"
+
+    # Define the full path for the final output file
+    output_file="$output_dir/$base_name"
+
+    # --- Execute ---
+
+    # Create the destination directory if it doesn't exist
+    # The 'mkdir -p' command is safe to run even if the directory already exists.
+    if [ "$DRY_RUN" = true ]; then
+        echo "DRY RUN: mkdir -p \"$output_dir\""
+    else
+        mkdir -p "$output_dir"
+    fi
+
+    echo "Processing: \"$f_cleaned\" -> \"$output_file\""
+
+    # Build the ffmpeg command
+    FFMPEG_CMD="ffmpeg -y -nostdin -i \"$f_cleaned\" \
+        -vf \"scale=200:-2\" \
+        -c:v libx264 -preset fast -crf 28 \
+        -c:a aac -b:a 96k \
+        \"$output_file\""
+
+    if [ "$DRY_RUN" = true ]; then
+        echo "DRY RUN: $FFMPEG_CMD"
+    else
+        # Execute the command
+        eval "$FFMPEG_CMD"
+    fi
+    
+    echo # Add a newline for readability between files
+
+done
+
+echo "--- Script finished ---"
